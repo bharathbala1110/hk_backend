@@ -1,15 +1,7 @@
 
 const mysql=require('mysql2')
 const dbConnect = mysql.createPool({
-    // host: '174.138.20.219',
-    // user: 'admin_calistausr',
-    // password: 'i6sCAFZaQt',
-    // database: 'admin_calistapet',
-    // waitForConnections: true,
-    // connectionLimit: 10,
-    // queueLimit: 0
-
-    //
+  
     host: '139.59.40.147',
     user: 'root',
     password: 'StagingServer@2017',
