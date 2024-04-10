@@ -15,11 +15,11 @@ const endOfWeek = new Date(startOfWeek);
 endOfWeek.setDate(startOfWeek.getDate() + 5);
 
 router.get("/", async (req, res) => {
-    const body=req.body
-    body.startDate=body.startDate ||startOfWeek;
-    body.endDate=body.endDate ||endOfWeek;
-    const formattedStartDate = body.startDate.toISOString().split('T')[0];
-    const formattedEndDate = body.endDate.toISOString().split('T')[0];
+    const data=req.query
+    data.startDate = data.startDate ? new Date(data.startDate) : startOfWeek;
+    data.endDate = data.endDate ? new Date(data.endDate) : endOfWeek;
+    const formattedStartDate = data.startDate.toISOString().split('T')[0];
+    const formattedEndDate = data.endDate.toISOString().split('T')[0];
     const result={}
     try {
         console.log("currentDate",currentDate)
@@ -54,11 +54,28 @@ router.get("/", async (req, res) => {
       WHERE purchase_order.date>= '${formattedStartDate}' 
       AND purchase_order.date < DATE_ADD('${formattedEndDate}', INTERVAL 1 DAY)
       GROUP BY purchase_materials.purchase_material_id,purchase_materials.material_name;`
+
+      const topSuppliers=`SELECT suppliers.supplier_id,suppliers.supplier_name,SUM(purchase_order_details.quantity) AS quantity FROM
+      suppliers
+      JOIN purchase_order ON purchase_order.supplier_id = suppliers.supplier_id
+      JOIN purchase_order_details ON purchase_order_details.po_id=purchase_order.po_id 
+       WHERE DATE(purchase_order.date) >= '${formattedStartDate}' 
+            AND DATE(purchase_order.date) < DATE_ADD('${formattedEndDate}', INTERVAL 1 DAY)
+      GROUP BY suppliers.supplier_id LIMIT 10`
+      const segregationMaterial=`SELECT segregation_material.material AS material, round(SUM(segregation.quantity),0) AS quantity
+      FROM segregation, segregation_material
+      WHERE segregation.material_id=segregation_material.segregation_material_id
+      AND segregation.created_on>='${formattedStartDate}'
+      AND segregation.created_on<date_add('${formattedEndDate}', INTERVAL 1 DAY)
+      GROUP BY material
+      ORDER BY quantity DESC`
        result.procured_volume = await dashboardModel.executeQuery(volume);
        result.segregated = await dashboardModel.executeQuery(segregated);
        result.sold_volume = await dashboardModel.executeQuery(sold);
        result.noOfOrders = await dashboardModel.executeQuery(orders);
        result.quantityByMaterial = await dashboardModel.executeQuery(quantityByMaterial);
+       result.topSuppliers = await dashboardModel.executeQuery(topSuppliers);
+       result.segregationMaterial = await dashboardModel.executeQuery(segregationMaterial);
        
       res.json(result);
     } catch (e) {

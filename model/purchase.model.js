@@ -51,7 +51,7 @@ GROUP BY
   purchase_order.po_id;`;
 
 
-  return executeQuery(sql);
+  return await executeQuery(sql);
 };
 
 const getById = async (id) => {

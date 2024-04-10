@@ -3,7 +3,7 @@ const jwt= require('jsonwebtoken')
 const secretKey='abcd'
 
 const verifyToken=(req,res,next)=>{
-  const token =req.headers['authorization']
+  let token =req.headers['authorization']
    
     if(!token){
         return res.json({message:'No token provided'})
