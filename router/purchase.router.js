@@ -13,6 +13,19 @@ router.get("/", async (req, res) => {
     res.status(500).send("Error");
   }
 });
+//purchase material list
+router.get("/purchaseMaterial", async (req, res) => {
+  
+  try {
+    const sql='SELECT purchase_material_id,material_name FROM purchase_materials'
+    const result = await purchaseModel.executeQuery(sql);
+    res.json(result);
+  } catch (e) {
+    console.error("Error:", e);
+    res.status(500).send("Error");
+  }
+});
+
 router.get("/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -34,10 +47,10 @@ router.post("/", async (req, res) => {
     const supplier_id = purchaseDetail.supplierId;
     const supervisor_id = purchaseDetail.supervisor_id || 1;
     const procurement_mode = purchaseDetail.procurementMode;
-    const startMeterReading=purchaseDetail.startMeterReading;
-    const endMeterReading=purchaseDetail.endMeterReading;
-    const supplier_signature = req.body.supplierSignature;
-    const driver_signature = req.body.driverSignature;
+    const startMeterReading=purchaseDetail.startMeterReading || null;
+    const endMeterReading=purchaseDetail.endMeterReading || null;
+    const supplier_signature = req.body.supplierSignature || '';
+    const driver_signature = req.body.driverSignature || '';
     // const supervisor_signature = req.body.supervisor_signature;
     const material = materials;
     let purchaseCreateQuery = `INSERT INTO purchase_order(
@@ -56,6 +69,7 @@ router.post("/", async (req, res) => {
       supplier_signature,
       driver_signature,
     ]);
+    
     if (result.insertId) {
       const po_id = result.insertId;
 

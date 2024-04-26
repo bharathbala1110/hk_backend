@@ -48,7 +48,9 @@ JOIN suppliers
 ON purchase_order.supplier_id = suppliers.supplier_id
 JOIN codes ON codes.name='Purchases'
 GROUP BY
-  purchase_order.po_id;`;
+  purchase_order.po_id
+ORDER BY
+purchase_order.po_id desc;`;
 
 
   return await executeQuery(sql);

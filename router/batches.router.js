@@ -24,7 +24,7 @@ router.get("/", async (req, res) => {
     res.status(500).send("Error");
   }
 });
-router.get("/:id", async (req, res) => {
+router.get("/batchdetail/:id", async (req, res) => {
   try {
     const result={}
     const id = req.params.id;
@@ -35,7 +35,7 @@ router.get("/:id", async (req, res) => {
     FROM batches JOIN batches_details ON batches_details.batch_id=batches.batch_id 
     JOIN purchase_order_details ON purchase_order_details.purchase_material_id=batches_details.material_id
     AND purchase_order_details.po_id=batches_details.purchase_order_id
-     WHERE batches.batch_id=${id}`
+    WHERE batches.batch_id=${id}`
     
     const sql2=`SELECT  CONCAT(purchase_materials.code,batches_details.purchase_order_id) AS display_material_id,purchase_materials.material_name,batches_details.purchase_order_id,batches_details.material_id,
     purchase_order_details.purchase_material_id,purchase_order_details.quantity,
@@ -52,6 +52,84 @@ router.get("/:id", async (req, res) => {
      result.material=await batchModel.executeQuery(sql2)
 
     res.json(result);
+  } catch (e) {
+    console.error("Error:", e);
+    res.status(500).send("Error");
+  }
+});
+router.get("/materialList", async (req, res) => {
+  try {
+    const query = `SELECT
+    CONCAT(purchase_materials.code, purchase_order_details.po_id) AS display_id,
+    purchase_order_details.po_id,
+    suppliers.supplier_name,
+    purchase_materials.purchase_material_id,
+    suppliers.supplier_id,
+    CONCAT(
+        MONTHNAME(purchase_order.date),
+        ' ',
+        DAY(purchase_order.date)
+    ) AS date
+FROM
+    purchase_order_details
+JOIN purchase_materials 
+    ON purchase_order_details.purchase_material_id = purchase_materials.purchase_material_id
+JOIN purchase_order 
+    ON purchase_order.po_id = purchase_order_details.po_id
+JOIN suppliers 
+    ON purchase_order.supplier_id = suppliers.supplier_id
+LEFT JOIN batches_details 
+    ON batches_details.purchase_order_id = purchase_order_details.po_id 
+    AND batches_details.material_id = purchase_order_details.purchase_material_id
+WHERE
+    batches_details.purchase_order_id IS NULL`;
+    const result = await batchModel.executeQuery(query);
+    res.json(result);
+  } catch (e) {
+    console.error("Error:", e);
+    res.status(500).send("Error");
+  }
+});
+router.post("/", async (req, res) => {
+  try {
+    const body=req.body
+    console.log(body)
+    // const {purchaseAndMaterial}=req.body[0]
+    // console.log(purchaseAndMaterial)
+    
+  
+    // const supervisor_signature = req.body.supervisor_signature;
+   
+    let batchCreateQuery = `INSERT INTO batches(
+        status,
+        segregated
+        )
+        VALUES (?,?)`;
+
+    const result = await batchModel.executeQuery(batchCreateQuery, [
+      1,
+      0
+    ]);
+    
+    if (result.insertId) {
+      const batch_id = result.insertId;
+
+      console.log("getting id", batch_id);
+      let batchMaterialQuery = `INSERT INTO 
+      batches_details(batch_id, purchase_order_id,material_id)
+      VALUES (?,?,?)`;
+      const materialsInsertPromises = body.map((mat) =>
+        batchModel.executeQuery(batchMaterialQuery, [
+          batch_id,
+          mat.purchaseAndMaterial.po_id,  
+          mat.purchaseAndMaterial.purchase_material_id
+        ])
+      );
+      const materials = await Promise.all(materialsInsertPromises);
+      res.json(materials);
+    } else {
+      res.json(result);
+    }
   } catch (e) {
     console.error("Error:", e);
     res.status(500).send("Error");

@@ -14,6 +14,7 @@ const batchRouter=require('./router/batches.router')
 const baleRouter=require('./router/bale.router')
 const saleRouter=require('./router/sale.router')
 const dashboardRouter=require('./router/dashboard.router')
+const segregationRouter=require('./router/segregation.router')
 const app = express();
 
 
@@ -30,7 +31,7 @@ app.use(cors())
 const port = 2000;
 
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'))
 
 // const storage=multer.diskStorage({
@@ -44,12 +45,13 @@ app.use(express.static('public'))
 // })
 // app.use(upload.any())
 app.use('/api/user',authRouter)
-app.use('/api/supplier',verifyToken,supplierRouter)
-app.use('/api/purchase',verifyToken,purchaseRouter)
-app.use('/api/batch',verifyToken,batchRouter)
-app.use('/api/bale',verifyToken,baleRouter)
+app.use('/api/supplier',supplierRouter)
+app.use('/api/purchase',purchaseRouter)
+app.use('/api/batch',batchRouter)
+app.use('/api/bale',baleRouter)
+app.use('/api/segregation',segregationRouter)
 app.use('/api/sale',verifyToken,saleRouter)
-app.use('/api/sale',verifyToken,saleRouter)
+// app.use('/api/sale',verifyToken,saleRouter)
 app.use('/api/dashboard',verifyToken,dashboardRouter)
 
 app.listen(port, (err) => {
