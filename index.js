@@ -20,12 +20,12 @@ const app = express();
 
 
 app.use(cors())
-// app.use(cors({
-  // origin: 'http://localhost:3000', 
-  // origin: 'exp://192.168.1.12:8081',
-  // origin:'*'
+app.use(cors({
+  origin: 'http://localhost:3000', 
+  origin: 'https://www.hk.kcdev.xyz',
+  origin:'*'
 
-// }));
+}));
 
 
 const port = 2000;
@@ -45,11 +45,11 @@ app.use(express.static('public'))
 // })
 // app.use(upload.any())
 app.use('/api/user',authRouter)
-app.use('/api/supplier',supplierRouter)
-app.use('/api/purchase',purchaseRouter)
-app.use('/api/batch',batchRouter)
-app.use('/api/bale',baleRouter)
-app.use('/api/segregation',segregationRouter)
+app.use('/api/supplier',verifyToken,supplierRouter)
+app.use('/api/purchase',verifyToken,purchaseRouter)
+app.use('/api/batch',verifyToken,batchRouter)
+app.use('/api/bale',verifyToken,baleRouter)
+app.use('/api/segregation',verifyToken,segregationRouter)
 app.use('/api/sale',verifyToken,saleRouter)
 // app.use('/api/sale',verifyToken,saleRouter)
 app.use('/api/dashboard',verifyToken,dashboardRouter)

@@ -30,8 +30,10 @@ router.get("/batchList", async (req, res) => {
       JOIN codes ON codes.name='Purchases'
       WHERE batches.batch_id=${id}`;
       const query2 = `SELECT segregation_material_id,material FROM segregation_material`;
+      const query3 = `SELECT segregator_id,name FROM segregators`;
       result.po_material = await segregationModel.executeQuery(query);
       result.segregation_material = await segregationModel.executeQuery(query2);
+      result.segregators = await segregationModel.executeQuery(query3);
       res.json(result);
     } catch (e) {
       console.error("Error:", e);
